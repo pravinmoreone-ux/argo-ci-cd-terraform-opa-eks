@@ -1,0 +1,23 @@
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan
+tfplan.json
+crash.log
+crash.*.log
+
+# Terraform variables
+*.tfvars
+*.tfvars.json
+!terraform.tfvars.example
+
+# OPA binary
+opa.exe
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
