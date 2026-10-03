@@ -1,0 +1,54 @@
+name: Build and Push Applications
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/**'
+      - '.github/workflows/container-build.yml'
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-push:
+    name: Build and Push Container Images
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set image names
+        run: |
+          echo "JAVA_IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/pathnex-java-app" >> "$GITHUB_ENV"
+          echo "PYTHON_IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/pathnex-python-app" >> "$GITHUB_ENV"
+
+      - name: Build and push Java image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./apps/java-app
+          file: ./apps/java-app/Containerfile
+          push: true
+          tags: |
+            ${{ env.JAVA_IMAGE }}:${{ github.sha }}
+            ${{ env.JAVA_IMAGE }}:latest
+
+      - name: Build and push Python image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./apps/python-app
+          file: ./apps/python-app/Containerfile
+          push: true
+          tags: |
+            ${{ env.PYTHON_IMAGE }}:${{ github.sha }}
+            ${{ env.PYTHON_IMAGE }}:latest
