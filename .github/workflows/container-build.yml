@@ -9,7 +9,7 @@ on:
       - '.github/workflows/container-build.yml'
 
 permissions:
-  contents: read
+  contents: write
   packages: write
 
 jobs:
@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -52,3 +54,26 @@ jobs:
           tags: |
             ${{ env.PYTHON_IMAGE }}:${{ github.sha }}
             ${{ env.PYTHON_IMAGE }}:latest
+
+      - name: Update Helm image tags
+        run: |
+          sed -i "s/^  tag: .*/  tag: ${GITHUB_SHA}/" helm/java-app/values.yaml
+          sed -i "s/^  tag: .*/  tag: ${GITHUB_SHA}/" helm/python-app/values.yaml
+
+          echo "Updated Java Helm tag:"
+          grep "tag:" helm/java-app/values.yaml
+
+          echo "Updated Python Helm tag:"
+          grep "tag:" helm/python-app/values.yaml
+
+      - name: Commit and push Helm changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add helm/java-app/values.yaml helm/python-app/values.yaml
+
+          git diff --cached --quiet || \
+            git commit -m "Update application image tags to ${GITHUB_SHA}"
+
+          git push
