@@ -45,3 +45,18 @@ jobs:
 
       - name: Terraform Plan
         run: terraform plan -out=tfplan
+
+      - name: Convert Terraform Plan to JSON
+        run: terraform show -json tfplan > tfplan.json
+
+      - name: Install OPA
+        run: |
+          curl -L -o opa https://openpolicyagent.org/downloads/latest/opa_linux_amd64
+          chmod +x opa
+
+      - name: Run OPA Policy Check
+        run: |
+          ./opa eval \
+            --data policies/terraform.rego \
+            --input tfplan.json \
+            "data.terraform.deny"
