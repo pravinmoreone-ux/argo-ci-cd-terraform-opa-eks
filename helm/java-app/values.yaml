@@ -2,7 +2,7 @@ replicaCount: 2
 
 image:
   repository: ghcr.io/pravinmoreone-ux/pathnex-java-app
-  tag: latest
+  tag: 3a13cca92ba7a1548bcaa7cb9cd6e1216714838e
   pullPolicy: Always
 
 service:
