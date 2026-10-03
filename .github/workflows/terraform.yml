@@ -56,7 +56,19 @@ jobs:
 
       - name: Run OPA Policy Check
         run: |
-          ./opa eval \
+          result=$(./opa eval \
             --data policies/terraform.rego \
             --input tfplan.json \
-            "data.terraform.deny"
+            --format=json \
+            "data.terraform.deny")
+
+          echo "$result"
+
+          violations=$(echo "$result" | jq -r '.result[0].expressions[0].value | length')
+
+          if [ "$violations" -gt 0 ]; then
+            echo "OPA policy violations detected."
+            exit 1
+          fi
+
+          echo "OPA policy check passed."
